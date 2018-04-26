@@ -17,6 +17,7 @@ namespace FoodDeliverySystem
         private FoodItem[] foodItems;
         private Buffer buffer;
         private Random random;
+
         private Producer producerScan;
         private Consumer consumerIca;
 
@@ -25,6 +26,7 @@ namespace FoodDeliverySystem
             InitializeComponent();
             InitializeFoodItem();
             InitializeProducerConsumer();
+            InitializeText();
         }
 
         private void InitializeFoodItem()
@@ -45,18 +47,20 @@ namespace FoodDeliverySystem
         private void InitializeProducerConsumer()
         {
             buffer = new Buffer(BufferSize);
-            buffer.CountChanged += Buffer_CountChanged;
             progressBar.Maximum = BufferSize;
-            lblMaxCapacity.Text = string.Format("Max capacity: {0}", BufferSize);
-
+            progressBar.DataBindings.Add(new Binding("Value", buffer, "Count"));
+            
             random = new Random();
             producerScan = new Producer(buffer, random, foodItems);
+
             consumerIca = new Consumer(buffer, random);
+            lstConsumerIca.DataSource = consumerIca.Items;
+            lstConsumerIca.DisplayMember = "Name";
         }
 
-        private void Buffer_CountChanged(object sender, EventArgs e)
+        private void InitializeText()
         {
-            Invoke(new Action(() => { progressBar.Value = buffer.Count; }));
+            lblMaxCapacity.Text = string.Format("Max capacity: " + BufferSize);
         }
 
         private void btnStartProducerScan_Click(object sender, EventArgs e)

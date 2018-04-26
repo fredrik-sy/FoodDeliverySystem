@@ -35,7 +35,7 @@ namespace FoodDeliverySystem
                 lock (produceFoodLock)
                 {
                     running = true;
-                    thread = new Thread(ProduceFood)
+                    thread = new Thread(new ThreadStart(ProduceFood))
                     {
                         IsBackground = true
                     };

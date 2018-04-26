@@ -15,60 +15,62 @@ namespace FoodDeliverySystem
         private const int Timeout = 1000;
 
         private FoodItem[] buffer;
-        private Mutex bufferMutex;
-        private Semaphore semaphoreReaders;
-        private Semaphore semaphoreWriters;
-        
+        private int count;
+
+        private Mutex mutex;
+        private Semaphore semReaders;
+        private Semaphore semWriters;
+
         public Buffer(int size)
         {
             buffer = new FoodItem[size];
-            bufferMutex = new Mutex();
-            semaphoreReaders = new Semaphore(0, size);
-            semaphoreWriters = new Semaphore(size, size);
+            mutex = new Mutex();
+            semReaders = new Semaphore(0, size);
+            semWriters = new Semaphore(size, size);
         }
 
         public event EventHandler CountChanged;
 
-        public int Count { get; private set; }
+        public int Count
+        {
+            get { return count; }
+            private set { count = value; OnCountChanged(new EventArgs()); }
+        }
 
         public void Enqueue(FoodItem foodItem)
         {
-            Trace.WriteLine("Enter Enqueue(FoodItem foodItem)");
-
-            if (semaphoreWriters.WaitOne(Timeout))
+            if (semWriters.WaitOne(Timeout))
             {
-                Trace.WriteLine("Acquired semaphoreWriters");
-                bufferMutex.WaitOne();
-                Trace.WriteLine("Acquired bufferMutex");
+                mutex.WaitOne();
 
                 buffer[Count++] = foodItem;
-                OnCountChanged(new EventArgs());
 
-                bufferMutex.ReleaseMutex();
-                Trace.WriteLine("Released bufferMutex");
-                semaphoreReaders.Release();
-                Trace.WriteLine("Released semaphoreReaders");
+                mutex.ReleaseMutex();
+                semReaders.Release();
             }
-
-            Trace.WriteLine("Exit Enqueue(FoodItem foodItem)");
         }
 
-        public FoodItem Dequeue()
+        public FoodItem? Dequeue()
         {
-            semaphoreReaders.WaitOne();
-            bufferMutex.WaitOne();
+            FoodItem? foodItem = null;
 
-            FoodItem foodItem = buffer[--Count];
+            if (semReaders.WaitOne(Timeout))
+            {
+                semReaders.WaitOne();
+                mutex.WaitOne();
 
-            bufferMutex.ReleaseMutex();
-            semaphoreWriters.Release();
+                foodItem = buffer[--Count];
+
+                mutex.ReleaseMutex();
+                semWriters.Release();
+            }
 
             return foodItem;
         }
 
         protected void OnCountChanged(EventArgs e)
         {
-            CountChanged?.Invoke(this, e);
+            Application.OpenForms[0].Invoke(new Action(() => { CountChanged?.Invoke(this, e); }));
         }
     }
 }

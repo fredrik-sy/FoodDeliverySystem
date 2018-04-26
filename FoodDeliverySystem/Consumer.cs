@@ -21,7 +21,7 @@ namespace FoodDeliverySystem
             MaxItems = random.Next(10, 20);
             MaxVolume = random.Next(5, 50);
             MaxWeight = random.Next(10, 50);
-            Items = new FoodItem[MaxItems];
+            Items = new List<FoodItem>();
         }
 
         public void Start()
@@ -39,7 +39,7 @@ namespace FoodDeliverySystem
 
         public bool UnloadEnabled { get; set; }
 
-        public FoodItem[] Items { get; private set; }
+        public List<FoodItem> Items { get; private set; }
 
         public int TotalItems { get; private set; }
 
@@ -62,30 +62,35 @@ namespace FoodDeliverySystem
         {
             while (running)
             {
-                FoodItem foodItem = storage.Dequeue();
+                FoodItem? foodItem = storage.Dequeue();
 
-                if (TotalItems >= MaxItems
-                    || foodItem.Volume + TotalVolume > MaxVolume
-                    || foodItem.Weight + TotalWeight > MaxWeight)
+                if (foodItem.HasValue)
                 {
-                    if (UnloadEnabled)
+                    if (TotalItems >= MaxItems
+                        || foodItem.Value.Volume + TotalVolume > MaxVolume
+                        || foodItem.Value.Weight + TotalWeight > MaxWeight)
                     {
-                        TotalItems = 0;
-                        TotalVolume = 0;
-                        TotalWeight = 0;
-                        Array.Clear(Items, 0, MaxItems);
-                        Thread.Sleep(UnloadTime);
-                    }
-                    else
-                    {
-                        running = false;
+                        if (UnloadEnabled)
+                        {
+                            TotalItems = 0;
+                            TotalVolume = 0;
+                            TotalWeight = 0;
+                            Items.Clear();
+                            Thread.Sleep(UnloadTime);
+                        }
+                        else
+                        {
+                            running = false;
+                        }
+
+                        continue;
                     }
 
-                    continue;
+                    Items.Add(foodItem.Value);
+                    TotalItems++;
+                    TotalVolume += foodItem.Value.Volume;
+                    TotalWeight += foodItem.Value.Weight;
                 }
-
-                Items[TotalItems] = foodItem;
-                TotalItems++;
             }
         }
     }
