@@ -6,19 +6,19 @@ using System.Threading.Tasks;
 
 namespace FoodDeliverySystem
 {
-    internal struct FoodItem
+    internal class FoodItem
     {
-        public readonly string Name;
-
-        public readonly double Volume;
-
-        public readonly double Weight;
-
         public FoodItem(string name, double volume, double weight)
         {
             Name = name;
             Volume = volume;
             Weight = weight;
         }
+
+        public string Name { get; }
+
+        public double Volume { get; }
+
+        public double Weight { get; }
     }
 }

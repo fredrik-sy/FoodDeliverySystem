@@ -50,13 +50,12 @@ namespace FoodDeliverySystem
             }
         }
 
-        public FoodItem? Dequeue()
+        public FoodItem Dequeue()
         {
-            FoodItem? foodItem = null;
+            FoodItem foodItem = null;
 
             if (semReaders.WaitOne(Timeout))
             {
-                semReaders.WaitOne();
                 mutex.WaitOne();
 
                 foodItem = buffer[--Count];

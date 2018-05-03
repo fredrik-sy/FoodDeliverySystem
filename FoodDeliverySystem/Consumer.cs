@@ -1,34 +1,56 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace FoodDeliverySystem
 {
-    class Consumer
+    class Consumer : INotifyPropertyChanged
     {
+        private const int MaxRandomTimeout = 3000;
+        private const int MinRandomTimeout = 1000;
         private const int UnloadTime = 5000;
 
         private Buffer storage;
+        private Random random;
         private Thread thread;
         private bool running;
+
+        private int totalItems;
+        private double totalVolume;
+        private double totalWeight;
+        private bool unloadEnabled;
 
         public Consumer(Buffer buffer, Random random)
         {
             storage = buffer;
+            this.random = random;
+            Items = new BindingList<FoodItem>();
             MaxItems = random.Next(10, 20);
             MaxVolume = random.Next(5, 50);
             MaxWeight = random.Next(10, 50);
-            Items = new List<FoodItem>();
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public void Clear()
+        {
+            totalItems = 0;
+            totalVolume = 0;
+            totalWeight = 0;
+            Items.Clear();
         }
 
         public void Start()
         {
-            if (!running)
+            if (!Running)
             {
-                running = true;
+                Clear();
+                Running = true;
                 thread = new Thread(ConsumeFood)
                 {
                     IsBackground = true
@@ -37,15 +59,29 @@ namespace FoodDeliverySystem
             }
         }
 
-        public bool UnloadEnabled { get; set; }
+        public string Status
+        {
+            get { return Running ? "Status: Running" : "Status: Idle"; }
+        }
 
-        public List<FoodItem> Items { get; private set; }
+        public bool Running
+        {
+            get { return running; }
+            private set
+            {
+                running = value;
+                OnPropertyChanged(new PropertyChangedEventArgs("Running"));
+                OnPropertyChanged(new PropertyChangedEventArgs("Status"));
+            }
+        }
 
-        public int TotalItems { get; private set; }
+        public bool UnloadEnabled
+        {
+            get { return unloadEnabled; }
+            set { unloadEnabled = value; OnPropertyChanged(new PropertyChangedEventArgs("UnloadEnabled")); }
+        }
 
-        public double TotalVolume { get; private set; }
-
-        public double TotalWeight { get; private set; }
+        public BindingList<FoodItem> Items { get; set; }
 
         public int MaxItems { get; }
 
@@ -55,43 +91,54 @@ namespace FoodDeliverySystem
 
         public void Stop()
         {
-            running = false;
+            Running = false;
         }
 
         private void ConsumeFood()
         {
-            while (running)
+            while (Running)
             {
-                FoodItem? foodItem = storage.Dequeue();
+                FoodItem foodItem = storage.Dequeue();
 
-                if (foodItem.HasValue)
+                if (foodItem != null)
                 {
-                    if (TotalItems >= MaxItems
-                        || foodItem.Value.Volume + TotalVolume > MaxVolume
-                        || foodItem.Value.Weight + TotalWeight > MaxWeight)
+                    // Checks capacity limitations.
+                    if (totalItems >= MaxItems
+                        || foodItem.Volume + totalVolume > MaxVolume
+                        || foodItem.Weight + totalWeight > MaxWeight)
                     {
                         if (UnloadEnabled)
                         {
-                            TotalItems = 0;
-                            TotalVolume = 0;
-                            TotalWeight = 0;
-                            Items.Clear();
+                            Clear();
                             Thread.Sleep(UnloadTime);
                         }
                         else
                         {
-                            running = false;
+                            Running = false;
                         }
 
                         continue;
                     }
 
-                    Items.Add(foodItem.Value);
-                    TotalItems++;
-                    TotalVolume += foodItem.Value.Volume;
-                    TotalWeight += foodItem.Value.Weight;
+                    Invoke(new Action(() => Items.Add(foodItem)));
+                    totalItems++;
+                    totalVolume += foodItem.Volume;
+                    totalWeight += foodItem.Weight;
+
+                    int timeoutValue = random.Next(MinRandomTimeout, MaxRandomTimeout);
+                    Thread.Sleep(timeoutValue);
                 }
             }
+        }
+
+        protected void OnPropertyChanged(PropertyChangedEventArgs e)
+        {
+            Invoke(new Action(() => PropertyChanged?.Invoke(this, e)));
+        }
+
+        protected void Invoke(Delegate method)
+        {
+            Application.OpenForms[0].Invoke(method);
         }
     }
 }

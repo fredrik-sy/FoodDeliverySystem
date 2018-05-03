@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace FoodDeliverySystem
 {
-    class Producer
+    class Producer : INotifyPropertyChanged
     {
         private const int MaxRandomTimeout = 2000;
         private const int MinRandomTimeout = 500;
@@ -25,16 +26,33 @@ namespace FoodDeliverySystem
             storage = buffer;
             this.random = random;
             this.foodItems = foodItems;
-            running = false;
         }
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public string Status
+        {
+            get { return Running ? "Status: Running" : "Status: Stopped"; }
+        }
+
+        public bool Running
+        {
+            get { return running; }
+            private set
+            {
+                running = value;
+                OnPropertyChanged(new PropertyChangedEventArgs("Running"));
+                OnPropertyChanged(new PropertyChangedEventArgs("Status"));
+            }
+        }
+        
         public void Start()
         {
-            if (!running)
+            if (!Running)
             {
                 lock (produceFoodLock)
                 {
-                    running = true;
+                    Running = true;
                     thread = new Thread(new ThreadStart(ProduceFood))
                     {
                         IsBackground = true
@@ -47,9 +65,9 @@ namespace FoodDeliverySystem
 
         public void Stop()
         {
-            if (running)
+            if (Running)
             {
-                running = false;
+                Running = false;
             }
         }
 
@@ -57,7 +75,7 @@ namespace FoodDeliverySystem
         {
             lock (produceFoodLock)
             {
-                while (running)
+                while (Running)
                 {
                     int foodIndex = random.Next(foodItems.Length);
                     storage.Enqueue(foodItems[foodIndex]);
@@ -66,6 +84,11 @@ namespace FoodDeliverySystem
                     Thread.Sleep(timeoutValue);
                 }
             }
+        }
+
+        private void OnPropertyChanged(PropertyChangedEventArgs e)
+        {
+            PropertyChanged?.Invoke(this, e);
         }
     }
 }

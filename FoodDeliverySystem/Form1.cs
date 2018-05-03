@@ -16,17 +16,23 @@ namespace FoodDeliverySystem
 
         private FoodItem[] foodItems;
         private Buffer buffer;
-        private Random random;
+        private Random random = new Random();
 
         private Producer producerScan;
+        private Producer producerArla;
+        private Producer producerAxFood;
+
         private Consumer consumerIca;
+        private Consumer consumerCoop;
+        private Consumer consumerCityGross;
 
         public Form1()
         {
             InitializeComponent();
             InitializeFoodItem();
-            InitializeProducerConsumer();
-            InitializeText();
+            InitializeBuffer();
+            InitializeProducer();
+            InitializeConsumer();
         }
 
         private void InitializeFoodItem()
@@ -44,46 +50,123 @@ namespace FoodDeliverySystem
             foodItems[9] = new FoodItem("Soda", 2.5, 3);
         }
 
-        private void InitializeProducerConsumer()
+        private void InitializeBuffer()
         {
             buffer = new Buffer(BufferSize);
             progressBar.Maximum = BufferSize;
-            progressBar.DataBindings.Add(new Binding("Value", buffer, "Count"));
-            
-            random = new Random();
-            producerScan = new Producer(buffer, random, foodItems);
+            progressBar.DataBindings.Add("Value", buffer, "Count");
+            lblMaxStorageCapacity.Text = "Max capacity: " + BufferSize;
+        }
 
+        private void InitializeProducer()
+        {
+            producerScan = new Producer(buffer, random, foodItems);
+            btnStartProducerScan.DataBindings.Add(new InverseBinding("Enabled", producerScan, "Running"));
+            btnStopProducerScan.DataBindings.Add(new Binding("Enabled", producerScan, "Running"));
+            lblProducerScanStatus.DataBindings.Add(new Binding("Text", producerScan, "Status"));
+
+            producerArla = new Producer(buffer, random, foodItems);
+            btnStartProducerArla.DataBindings.Add(new InverseBinding("Enabled", producerArla, "Running"));
+            btnStopProducerArla.DataBindings.Add(new Binding("Enabled", producerArla, "Running"));
+            lblProducerArlaStatus.DataBindings.Add(new Binding("Text", producerArla, "Status"));
+
+            producerAxFood = new Producer(buffer, random, foodItems);
+            btnStartProducerAxFood.DataBindings.Add(new InverseBinding("Enabled", producerAxFood, "Running"));
+            btnStopProducerAxFood.DataBindings.Add(new Binding("Enabled", producerAxFood, "Running"));
+            lblProducerAxFoodStatus.DataBindings.Add(new Binding("Text", producerAxFood, "Status"));
+        }
+
+        private void InitializeConsumer()
+        {
             consumerIca = new Consumer(buffer, random);
+            btnStartConsumerIca.DataBindings.Add(new InverseBinding("Enabled", consumerIca, "Running"));
+            btnStopConsumerIca.DataBindings.Add(new Binding("Enabled", consumerIca, "Running"));
             lstConsumerIca.DataSource = consumerIca.Items;
             lstConsumerIca.DisplayMember = "Name";
+            lblConsumerIcaStatus.DataBindings.Add(new Binding("Text", consumerIca, "Status"));
+            lblConsumerIcaItemsLimit.Text = "Items: " + consumerIca.MaxItems;
+            lblConsumerIcaWeightLimit.Text = "Weight: " + consumerIca.MaxWeight;
+            lblConsumerIcaVolumeLimit.Text = "Volume: " + consumerIca.MaxVolume;
+
+            consumerCoop = new Consumer(buffer, random);
+            btnStartConsumerCoop.DataBindings.Add(new InverseBinding("Enabled", consumerCoop, "Running"));
+            btnStopConsumerCoop.DataBindings.Add(new Binding("Enabled", consumerCoop, "Running"));
+            lstConsumerCoop.DataSource = consumerCoop.Items;
+            lstConsumerCoop.DisplayMember = "Name";
+            lblConsumerCoopStatus.DataBindings.Add(new Binding("Text", consumerCoop, "Status"));
+            lblConsumerCoopItemsLimit.Text = "Items: " + consumerCoop.MaxItems;
+            lblConsumerCoopWeightLimit.Text = "Weight: " + consumerCoop.MaxWeight;
+            lblConsumerCoopVolumeLimit.Text = "Volume: " + consumerCoop.MaxVolume;
+
+            consumerCityGross = new Consumer(buffer, random);
+            btnStartConsumerCityGross.DataBindings.Add(new InverseBinding("Enabled", consumerCityGross, "Running"));
+            btnStopConsumerCityGross.DataBindings.Add(new Binding("Enabled", consumerCityGross, "Running"));
+            lstConsumerCityGross.DataSource = consumerCityGross.Items;
+            lstConsumerCityGross.DisplayMember = "Name";
+            lblConsumerCityGrossStatus.DataBindings.Add(new Binding("Text", consumerCityGross, "Status"));
+            lblConsumerCityGrossItemsLimit.Text = "Items: " + consumerCityGross.MaxItems;
+            lblConsumerCityGrossWeightLimit.Text = "Weight: " + consumerCityGross.MaxWeight;
+            lblConsumerCityGrossVolumeLimit.Text = "Volume: " + consumerCityGross.MaxVolume;
         }
 
-        private void InitializeText()
+        private void btnStartProducer_Click(object sender, EventArgs e)
         {
-            lblMaxCapacity.Text = string.Format("Max capacity: " + BufferSize);
+            Button button = (Button)sender;
+
+            if (button == btnStartProducerScan)
+                producerScan.Start();
+            else if (button == btnStartProducerArla)
+                producerArla.Start();
+            else
+                producerAxFood.Start();
         }
 
-        private void btnStartProducerScan_Click(object sender, EventArgs e)
+        private void btnStopProducer_Click(object sender, EventArgs e)
         {
-            btnStartProducerScan.Enabled = false;
-            btnStopProducerScan.Enabled = true;
-            producerScan.Start();
-            lblProducerScanStatus.Text = "Status: Running";
+            Button button = (Button)sender;
+
+            if (button == btnStopProducerScan)
+                producerScan.Stop();
+            else if (button == btnStopProducerArla)
+                producerArla.Stop();
+            else
+                producerAxFood.Stop();
         }
 
-        private void btnStopProducerScan_Click(object sender, EventArgs e)
+        private void btnStartConsumer_Click(object sender, EventArgs e)
         {
-            btnStartProducerScan.Enabled = true;
-            btnStopProducerScan.Enabled = false;
-            producerScan.Stop();
-            lblProducerScanStatus.Text = "Status: Stopped";
+            Button button = (Button)sender;
+
+            if (button == btnStartConsumerIca)
+                consumerIca.Start();
+            else if (button == btnStartConsumerCoop)
+                consumerCoop.Start();
+            else
+                consumerCityGross.Start();
         }
 
-        private void btnStartConsumerIca_Click(object sender, EventArgs e)
+        private void btnStopConsumer_Click(object sender, EventArgs e)
         {
-            btnStartConsumerIca.Enabled = false;
-            btnStopConsumerIca.Enabled = true;
-            consumerIca.Start();
+            Button button = (Button)sender;
+
+            if (button == btnStartConsumerIca)
+                consumerIca.Stop();
+            else if (button == btnStartConsumerCoop)
+                consumerCoop.Stop();
+            else
+                consumerCityGross.Stop();
+        }
+
+        private void chkConsumerContinueLoad_CheckedChanged(object sender, EventArgs e)
+        {
+            CheckBox checkBox = (CheckBox)sender;
+
+            if (checkBox == chkConsumerIcaContinueLoad)
+                consumerIca.UnloadEnabled = chkConsumerIcaContinueLoad.Checked;
+            else if (checkBox == chkConsumerCoopContinueLoad)
+                consumerCoop.UnloadEnabled = chkConsumerCoopContinueLoad.Checked;
+            else
+                consumerCityGross.UnloadEnabled = chkConsumerCityGrossContinueLoad.Checked;
         }
     }
 }
