@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace FoodDeliverySystem
 {
-    class Buffer
+    class Buffer : INotifyPropertyChanged
     {
         private const int Timeout = 1000;
 
@@ -29,14 +29,23 @@ namespace FoodDeliverySystem
             semWriters = new Semaphore(size, size);
         }
 
-        public event EventHandler CountChanged;
+        /// <summary>
+        /// Event raised when a property has changed.
+        /// </summary>
+        public event PropertyChangedEventHandler PropertyChanged;
 
+        /// <summary>
+        /// Gets the number of <see cref="FoodItem"/> contained in the <see cref="Buffer"/>;
+        /// </summary>
         public int Count
         {
             get { return count; }
-            private set { count = value; OnCountChanged(new EventArgs()); }
+            private set { count = value; OnPropertyChanged(new PropertyChangedEventArgs("Count")); }
         }
 
+        /// <summary>
+        /// Enqueue <see cref="FoodItem"/> to the stack.
+        /// </summary>
         public void Enqueue(FoodItem foodItem)
         {
             if (semWriters.WaitOne(Timeout))
@@ -50,6 +59,9 @@ namespace FoodDeliverySystem
             }
         }
 
+        /// <summary>
+        /// Dequeue <see cref="FoodItem"/> from the stack.
+        /// </summary>
         public FoodItem Dequeue()
         {
             FoodItem foodItem = null;
@@ -67,9 +79,20 @@ namespace FoodDeliverySystem
             return foodItem;
         }
 
-        protected void OnCountChanged(EventArgs e)
+        /// <summary>
+        /// Raises the <see cref="PropertyChanged"/> event.
+        /// </summary>
+        protected void OnPropertyChanged(PropertyChangedEventArgs e)
         {
-            Application.OpenForms[0].Invoke(new Action(() => { CountChanged?.Invoke(this, e); }));
+            Invoke(new Action(() => PropertyChanged?.Invoke(this, e)));
+        }
+
+        /// <summary>
+        /// Invokes the delegate using the form thread.
+        /// </summary>
+        private void Invoke(Delegate method)
+        {
+            Application.OpenForms[0].Invoke(method);
         }
     }
 }

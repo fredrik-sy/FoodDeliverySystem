@@ -28,13 +28,22 @@ namespace FoodDeliverySystem
             this.foodItems = foodItems;
         }
 
+        /// <summary>
+        /// Event raised when a property has changed.
+        /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
 
+        /// <summary>
+        /// Gets the status of the <see cref="Producer"/>.
+        /// </summary>
         public string Status
         {
             get { return Running ? "Status: Running" : "Status: Stopped"; }
         }
 
+        /// <summary>
+        /// Gets the running status of the thread.
+        /// </summary>
         public bool Running
         {
             get { return running; }
@@ -45,7 +54,10 @@ namespace FoodDeliverySystem
                 OnPropertyChanged(new PropertyChangedEventArgs("Status"));
             }
         }
-        
+
+        /// <summary>
+        /// Starts the thread to produce food.
+        /// </summary>
         public void Start()
         {
             if (!Running)
@@ -63,6 +75,9 @@ namespace FoodDeliverySystem
             }
         }
 
+        /// <summary>
+        /// Stops the thread that produces foods.
+        /// </summary>
         public void Stop()
         {
             if (Running)
@@ -71,6 +86,9 @@ namespace FoodDeliverySystem
             }
         }
 
+        /// <summary>
+        /// Produces the <see cref="FoodItem"/> to <see cref="Buffer"/>.
+        /// </summary>
         private void ProduceFood()
         {
             lock (produceFoodLock)
@@ -86,6 +104,10 @@ namespace FoodDeliverySystem
             }
         }
 
+        /// <summary>
+        /// Raises the <see cref="PropertyChanged"/> event.
+        /// </summary>
+        /// <param name="e"></param>
         private void OnPropertyChanged(PropertyChangedEventArgs e)
         {
             PropertyChanged?.Invoke(this, e);

@@ -35,8 +35,14 @@ namespace FoodDeliverySystem
             MaxWeight = random.Next(10, 50);
         }
 
+        /// <summary>
+        /// Event raised when a property has changed.
+        /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
 
+        /// <summary>
+        /// Removes all <see cref="FoodItem"/> from the <see cref="Consumer"/>.
+        /// </summary>
         public void Clear()
         {
             totalItems = 0;
@@ -45,6 +51,9 @@ namespace FoodDeliverySystem
             Items.Clear();
         }
 
+        /// <summary>
+        /// Starts the thread to consume food.
+        /// </summary>
         public void Start()
         {
             if (!Running)
@@ -59,11 +68,17 @@ namespace FoodDeliverySystem
             }
         }
 
+        /// <summary>
+        /// Gets the status of the <see cref="Consumer"/>.
+        /// </summary>
         public string Status
         {
             get { return Running ? "Status: Running" : "Status: Idle"; }
         }
 
+        /// <summary>
+        /// Gets the running status of the thread.
+        /// </summary>
         public bool Running
         {
             get { return running; }
@@ -75,25 +90,46 @@ namespace FoodDeliverySystem
             }
         }
 
+        /// <summary>
+        /// Gets or sets the unload option of the <see cref="Consumer"/>. 
+        /// </summary>
         public bool UnloadEnabled
         {
             get { return unloadEnabled; }
             set { unloadEnabled = value; OnPropertyChanged(new PropertyChangedEventArgs("UnloadEnabled")); }
         }
-
+        
+        /// <summary>
+        /// Gets or sets the <see cref="FoodItem"/> collection.
+        /// </summary>
         public BindingList<FoodItem> Items { get; set; }
 
+        /// <summary>
+        /// Gets the maximum items the <see cref="Consumer"/> supports.
+        /// </summary>
         public int MaxItems { get; }
 
+        /// <summary>
+        /// Gets the maximum volume the <see cref="Consumer"/> supports.
+        /// </summary>
         public double MaxVolume { get; }
 
+        /// <summary>
+        /// Gets the maximum weight the <see cref="Consumer"/> supports.
+        /// </summary>
         public double MaxWeight { get; }
 
+        /// <summary>
+        /// Stops the thread that consumes foods.
+        /// </summary>
         public void Stop()
         {
             Running = false;
         }
 
+        /// <summary>
+        /// Consumes <see cref="FoodItem"/> from <see cref="Buffer"/>.
+        /// </summary>
         private void ConsumeFood()
         {
             while (Running)
@@ -131,11 +167,17 @@ namespace FoodDeliverySystem
             }
         }
 
+        /// <summary>
+        /// Raises the <see cref="PropertyChanged"/> event.
+        /// </summary>
         protected void OnPropertyChanged(PropertyChangedEventArgs e)
         {
             Invoke(new Action(() => PropertyChanged?.Invoke(this, e)));
         }
 
+        /// <summary>
+        /// Invokes the delegate using the form thread.
+        /// </summary>
         protected void Invoke(Delegate method)
         {
             Application.OpenForms[0].Invoke(method);

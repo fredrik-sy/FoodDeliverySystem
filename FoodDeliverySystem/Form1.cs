@@ -35,6 +35,9 @@ namespace FoodDeliverySystem
             InitializeConsumer();
         }
 
+        /// <summary>
+        /// Creates the <see cref="FoodItem"/> array.
+        /// </summary>
         private void InitializeFoodItem()
         {
             foodItems = new FoodItem[10];
@@ -50,14 +53,20 @@ namespace FoodDeliverySystem
             foodItems[9] = new FoodItem("Soda", 2.5, 3);
         }
 
+        /// <summary>
+        /// Creates the <see cref="Buffer"/> and bind it to <see cref="ProgressBar"/>.
+        /// </summary>
         private void InitializeBuffer()
         {
             buffer = new Buffer(BufferSize);
             progressBar.Maximum = BufferSize;
-            progressBar.DataBindings.Add("Value", buffer, "Count");
+            progressBar.DataBindings.Add(new Binding("Value", buffer, "Count"));
             lblMaxStorageCapacity.Text = "Max capacity: " + BufferSize;
         }
 
+        /// <summary>
+        /// Creates the producers and bind them to different controls.
+        /// </summary>
         private void InitializeProducer()
         {
             producerScan = new Producer(buffer, random, foodItems);
@@ -76,14 +85,17 @@ namespace FoodDeliverySystem
             lblProducerAxFoodStatus.DataBindings.Add(new Binding("Text", producerAxFood, "Status"));
         }
 
+        /// <summary>
+        /// Creates the consumers and bind them to different controls.
+        /// </summary>
         private void InitializeConsumer()
         {
             consumerIca = new Consumer(buffer, random);
             btnStartConsumerIca.DataBindings.Add(new InverseBinding("Enabled", consumerIca, "Running"));
             btnStopConsumerIca.DataBindings.Add(new Binding("Enabled", consumerIca, "Running"));
+            lblConsumerIcaStatus.DataBindings.Add(new Binding("Text", consumerIca, "Status"));
             lstConsumerIca.DataSource = consumerIca.Items;
             lstConsumerIca.DisplayMember = "Name";
-            lblConsumerIcaStatus.DataBindings.Add(new Binding("Text", consumerIca, "Status"));
             lblConsumerIcaItemsLimit.Text = "Items: " + consumerIca.MaxItems;
             lblConsumerIcaWeightLimit.Text = "Weight: " + consumerIca.MaxWeight;
             lblConsumerIcaVolumeLimit.Text = "Volume: " + consumerIca.MaxVolume;
@@ -91,9 +103,9 @@ namespace FoodDeliverySystem
             consumerCoop = new Consumer(buffer, random);
             btnStartConsumerCoop.DataBindings.Add(new InverseBinding("Enabled", consumerCoop, "Running"));
             btnStopConsumerCoop.DataBindings.Add(new Binding("Enabled", consumerCoop, "Running"));
+            lblConsumerCoopStatus.DataBindings.Add(new Binding("Text", consumerCoop, "Status"));
             lstConsumerCoop.DataSource = consumerCoop.Items;
             lstConsumerCoop.DisplayMember = "Name";
-            lblConsumerCoopStatus.DataBindings.Add(new Binding("Text", consumerCoop, "Status"));
             lblConsumerCoopItemsLimit.Text = "Items: " + consumerCoop.MaxItems;
             lblConsumerCoopWeightLimit.Text = "Weight: " + consumerCoop.MaxWeight;
             lblConsumerCoopVolumeLimit.Text = "Volume: " + consumerCoop.MaxVolume;
@@ -101,14 +113,17 @@ namespace FoodDeliverySystem
             consumerCityGross = new Consumer(buffer, random);
             btnStartConsumerCityGross.DataBindings.Add(new InverseBinding("Enabled", consumerCityGross, "Running"));
             btnStopConsumerCityGross.DataBindings.Add(new Binding("Enabled", consumerCityGross, "Running"));
+            lblConsumerCityGrossStatus.DataBindings.Add(new Binding("Text", consumerCityGross, "Status"));
             lstConsumerCityGross.DataSource = consumerCityGross.Items;
             lstConsumerCityGross.DisplayMember = "Name";
-            lblConsumerCityGrossStatus.DataBindings.Add(new Binding("Text", consumerCityGross, "Status"));
             lblConsumerCityGrossItemsLimit.Text = "Items: " + consumerCityGross.MaxItems;
             lblConsumerCityGrossWeightLimit.Text = "Weight: " + consumerCityGross.MaxWeight;
             lblConsumerCityGrossVolumeLimit.Text = "Volume: " + consumerCityGross.MaxVolume;
         }
 
+        /// <summary>
+        /// Occurs when the start button for producers is clicked.
+        /// </summary>
         private void btnStartProducer_Click(object sender, EventArgs e)
         {
             Button button = (Button)sender;
@@ -121,6 +136,9 @@ namespace FoodDeliverySystem
                 producerAxFood.Start();
         }
 
+        /// <summary>
+        /// Occurs when the stop button for producers is clicked.
+        /// </summary>
         private void btnStopProducer_Click(object sender, EventArgs e)
         {
             Button button = (Button)sender;
@@ -133,6 +151,9 @@ namespace FoodDeliverySystem
                 producerAxFood.Stop();
         }
 
+        /// <summary>
+        /// Occurs when the start button for consumers is clicked.
+        /// </summary>
         private void btnStartConsumer_Click(object sender, EventArgs e)
         {
             Button button = (Button)sender;
@@ -145,18 +166,26 @@ namespace FoodDeliverySystem
                 consumerCityGross.Start();
         }
 
+        /// <summary>
+        /// Occurs when the stop button for consumers is clicked.
+        /// </summary>
         private void btnStopConsumer_Click(object sender, EventArgs e)
         {
             Button button = (Button)sender;
 
-            if (button == btnStartConsumerIca)
+            if (button == btnStopConsumerIca)
                 consumerIca.Stop();
-            else if (button == btnStartConsumerCoop)
+            else if (button == btnStopConsumerCoop)
                 consumerCoop.Stop();
             else
                 consumerCityGross.Stop();
         }
 
+        /// <summary>
+        /// Occurs when the consumers <see cref="CheckBox"/> has changed.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void chkConsumerContinueLoad_CheckedChanged(object sender, EventArgs e)
         {
             CheckBox checkBox = (CheckBox)sender;
@@ -167,6 +196,19 @@ namespace FoodDeliverySystem
                 consumerCoop.UnloadEnabled = chkConsumerCoopContinueLoad.Checked;
             else
                 consumerCityGross.UnloadEnabled = chkConsumerCityGrossContinueLoad.Checked;
+        }
+
+        /// <summary>
+        /// Stops all producers and consumers when form is closing.
+        /// </summary>
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            producerScan.Stop();
+            producerArla.Stop();
+            producerAxFood.Stop();
+            consumerIca.Stop();
+            consumerCoop.Stop();
+            consumerCityGross.Stop();
         }
     }
 }

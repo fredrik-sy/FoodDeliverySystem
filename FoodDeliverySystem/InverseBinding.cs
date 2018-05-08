@@ -13,12 +13,18 @@ namespace FoodDeliverySystem
         {
         }
 
+        /// <summary>
+        /// Raises the <see cref="Binding.Format"/> event with inversed value.
+        /// </summary>
         protected override void OnFormat(ConvertEventArgs cevent)
         {
             cevent.Value = !((bool)cevent.Value);
             base.OnFormat(cevent);
         }
 
+        /// <summary>
+        /// Raises the <see cref="Binding.Parse"/> event with inversed value.
+        /// </summary>
         protected override void OnParse(ConvertEventArgs cevent)
         {
             cevent.Value = !((bool)cevent.Value);
